@@ -63,22 +63,23 @@ showErrorMessageEnhanced(
   showErrorMessage(message.toString(), duration: duration);
 }
 
-showBeautyDialog(
+showCustomBeautyDialog(
   BuildContext context, {
   required QuickAlertType type,
-  required String text,
+  required Widget child,
   String confirmBtnText = '确定',
   String? cancelBtnText,
   Function()? onConfirmBtnTap,
   Function()? onCancelBtnTap,
   bool showCancelBtn = false,
+  String title = '',
 }) {
   final customColors = Theme.of(context).extension<CustomColors>()!;
 
   QuickAlert.show(
     context: context,
     type: type,
-    text: text,
+    widget: child,
     width: MediaQuery.of(context).size.width > 600 ? 400 : null,
     barrierDismissible: false, // 禁止点击外部关闭
     showCancelBtn: showCancelBtn,
@@ -92,7 +93,51 @@ showBeautyDialog(
       color: Colors.white,
       fontWeight: FontWeight.normal,
     ),
-    title: '',
+    title: title,
+    titleColor: customColors.dialogDefaultTextColor!,
+    textColor: customColors.dialogDefaultTextColor!,
+    cancelBtnTextStyle: TextStyle(
+      color: customColors.dialogDefaultTextColor,
+      fontWeight: FontWeight.normal,
+    ),
+    onConfirmBtnTap: onConfirmBtnTap,
+    onCancelBtnTap: onCancelBtnTap,
+  );
+}
+
+showBeautyDialog(
+  BuildContext context, {
+  required QuickAlertType type,
+  required String text,
+  String? title,
+  String confirmBtnText = '确定',
+  String? cancelBtnText,
+  Function()? onConfirmBtnTap,
+  Function()? onCancelBtnTap,
+  bool showCancelBtn = false,
+  bool barrierDismissible = false, // 禁止点击外部关闭
+}) {
+  final customColors = Theme.of(context).extension<CustomColors>()!;
+
+  QuickAlert.show(
+    context: context,
+    type: type,
+    text: text,
+    width: MediaQuery.of(context).size.width > 600 ? 400 : null,
+    barrierDismissible: barrierDismissible,
+    showCancelBtn: showCancelBtn,
+    confirmBtnText: confirmBtnText,
+    cancelBtnText: cancelBtnText ?? AppLocale.cancel.getString(context),
+    confirmBtnColor: customColors.linkColor!,
+    borderRadius: 10,
+    buttonBorderRadius: 10,
+    backgroundColor: customColors.dialogBackgroundColor!,
+    confirmBtnTextStyle: const TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.normal,
+    ),
+    title: title ?? '',
+    titleColor: customColors.dialogDefaultTextColor!,
     textColor: customColors.dialogDefaultTextColor!,
     cancelBtnTextStyle: TextStyle(
       color: customColors.dialogDefaultTextColor,

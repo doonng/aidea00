@@ -66,6 +66,14 @@ class _SettingScreenState extends State<SettingScreen> {
               color: customColors.backgroundInvertedColor,
             ),
           ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                context.push('/notifications');
+              },
+              icon: const Icon(Icons.notifications_outlined),
+            ),
+          ],
           child: BlocBuilder<AccountBloc, AccountState>(
             builder: (_, state) {
               return buildSettingsList([
@@ -97,6 +105,9 @@ class _SettingScreenState extends State<SettingScreen> {
                     // OpenAI 自定义配置
                     if (Ability().enableOpenAI)
                       _buildOpenAISelfHostedSetting(customColors),
+                    // 用户 API Keys 配置
+                    if (Ability().supportAPIKeys)
+                      _buildUserAPIKeySetting(customColors),
                   ],
                 ),
 
@@ -104,6 +115,19 @@ class _SettingScreenState extends State<SettingScreen> {
                 SettingsSection(
                   title: Text(AppLocale.systemInfo.getString(context)),
                   tiles: [
+                    // 服务状态
+                    if (Ability().serviceStatusPage != '')
+                      SettingsTile(
+                        title: const Text('服务状态'),
+                        trailing: Icon(
+                          CupertinoIcons.chevron_forward,
+                          size: MediaQuery.of(context).textScaleFactor * 18,
+                          color: Colors.grey,
+                        ),
+                        onPressed: (_) {
+                          launchUrlString(Ability().serviceStatusPage);
+                        },
+                      ),
                     // 清空缓存
                     SettingsTile(
                       title: Text(AppLocale.clearCache.getString(context)),
@@ -392,7 +416,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<List<SelectorItem<String>>> _defaultServerList() async {
     return [
-      SelectorItem(const Text('默认服务器'), apiServerURL),
+      SelectorItem(const Text('官方正式服务器'), apiServerURL),
+      SelectorItem(const Text('本地开发机'), 'http://localhost:8080'),
     ];
   }
 
@@ -578,6 +603,16 @@ class _SettingScreenState extends State<SettingScreen> {
       title: Text(AppLocale.customHomeModels.getString(context)),
       onPressed: (context) {
         context.push('/setting/custom-home-models');
+      },
+    );
+  }
+
+  /// 用户 API Key 配置
+  SettingsTile _buildUserAPIKeySetting(CustomColors customColors) {
+    return SettingsTile.navigation(
+      title: Text(AppLocale.userApiKeys.getString(context)),
+      onPressed: (context) {
+        context.push('/setting/user-api-keys');
       },
     );
   }

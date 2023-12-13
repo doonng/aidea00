@@ -20,9 +20,19 @@ class Ability {
     return _instance;
   }
 
+  /// 服务状态页
+  String get serviceStatusPage {
+    return capabilities.serviceStatusPage;
+  }
+
   /// 是否支持 Websocket
-  bool supportWebSocket() {
+  bool get supportWebSocket {
     return capabilities.supportWebsocket;
+  }
+
+  /// 是否支持 API Keys 功能
+  bool get supportAPIKeys {
+    return capabilities.supportAPIKeys;
   }
 
   /// 更新能力
@@ -71,9 +81,9 @@ class Ability {
         (!capabilities.disableChat || !capabilities.disableDigitalHuman);
   }
 
-  /// 是否支持支付宝
-  bool get enableAlipay {
-    return capabilities.alipayEnabled;
+  /// 是否支持 IOS 外支付
+  bool get enableOtherPay {
+    return capabilities.otherPayEnabled;
   }
 
   /// 是否支持 ApplePay
@@ -83,7 +93,7 @@ class Ability {
 
   /// 是否支持支付功能
   bool get enablePayment {
-    if (!enableApplePay && !enableAlipay) {
+    if (!enableApplePay && !enableOtherPay) {
       return false;
     }
 
@@ -91,7 +101,7 @@ class Ability {
       return true;
     }
 
-    return enableAlipay;
+    return enableOtherPay;
   }
 
   /// 是否支持API Server
@@ -100,7 +110,7 @@ class Ability {
   }
 
   /// 是否启用了 OpenAI 自定义设置
-  bool enableLocalOpenAI() {
+  bool get enableLocalOpenAI {
     return setting.boolDefault(settingOpenAISelfHosted, false);
   }
 
@@ -111,13 +121,13 @@ class Ability {
   }
 
   /// 是否支持翻译功能
-  bool supportTranslate() {
+  bool get supportTranslate {
     return false;
     // return setting.stringDefault(settingAPIServerToken, '') != '';
   }
 
   /// 是否支持语音合成功能
-  bool supportSpeak() {
+  bool get supportSpeak {
     // return setting.stringDefault(settingAPIServerToken, '') != '';
     if (PlatformTool.isWeb()) {
       return false;
@@ -127,7 +137,7 @@ class Ability {
   }
 
   /// 是否支持图片上传功能
-  bool supportImageUploader() {
+  bool get supportImageUploader {
     return supportImglocUploader() || supportQiniuUploader();
   }
 

@@ -6,9 +6,12 @@ import 'package:askaide/helper/error.dart';
 import 'package:askaide/helper/http.dart';
 import 'package:askaide/helper/logger.dart';
 import 'package:askaide/helper/platform.dart';
+import 'package:askaide/repo/api/article.dart';
 import 'package:askaide/repo/api/creative.dart';
 import 'package:askaide/repo/api/image_model.dart';
 import 'package:askaide/repo/api/info.dart';
+import 'package:askaide/repo/api/keys.dart';
+import 'package:askaide/repo/api/notification.dart';
 import 'package:askaide/repo/api/page.dart';
 import 'package:askaide/repo/api/payment.dart';
 import 'package:askaide/repo/api/quota.dart';
@@ -689,6 +692,18 @@ class APIServer {
     );
   }
 
+  Future<String> creativeIslandArtisticTextCompletionsAsyncV2(
+      Map<String, dynamic> params) async {
+    return sendPostRequest(
+      '/v2/creative-island/completions/artistic-text',
+      (resp) {
+        final cicResp = CreativeIslandCompletionAsyncResp.fromJson(resp.data);
+        return cicResp.taskId;
+      },
+      formData: params,
+    );
+  }
+
   Future<String> creativeIslandImageDirectEdit(
     String endpoint,
     Map<String, dynamic> params,
@@ -934,10 +949,10 @@ class APIServer {
     );
   }
 
-  /// 支付宝支付项目列表
-  Future<ApplePayProducts> alipayProducts() async {
+  /// 其它支付项目列表
+  Future<ApplePayProducts> otherPayProducts() async {
     return sendGetRequest(
-      '/v1/payment/alipay/products',
+      '/v1/payment/others/products',
       (resp) => ApplePayProducts.fromJson(resp.data),
     );
   }
@@ -953,12 +968,12 @@ class APIServer {
     );
   }
 
-  /// 发起 Alipay
-  Future<AlipayCreatedReponse> createAlipay(String productId,
+  /// 发起支付
+  Future<OtherPayCreatedReponse> createOtherPay(String productId,
       {required String source}) async {
     return sendPostRequest(
-      '/v1/payment/alipay',
-      (resp) => AlipayCreatedReponse.fromJson(resp.data),
+      '/v1/payment/others',
+      (resp) => OtherPayCreatedReponse.fromJson(resp.data),
       formData: Map<String, dynamic>.from({
         'product_id': productId,
         'source': source,
@@ -966,10 +981,10 @@ class APIServer {
     );
   }
 
-  /// 支付宝支付客户端确认
-  Future<String> alipayClientConfirm(Map<String, dynamic> params) async {
+  /// 其它支付客户端确认
+  Future<String> otherPayClientConfirm(Map<String, dynamic> params) async {
     return sendPostRequest(
-      '/v1/payment/alipay/client-confirm',
+      '/v1/payment/others/client-confirm',
       (resp) => resp.data['status'],
       formData: params,
     );
@@ -1735,5 +1750,81 @@ class APIServer {
   Future<void> chatGroupDeleteMessage(int groupId, int messageId) async {
     return sendDeleteRequest(
         '/v1/group-chat/$groupId/chat/$messageId', (resp) {});
+  }
+
+  /// API 模式 ////////////////////////////////////////////////////////////////////
+  /// 查询用户所有的 API Keys
+  Future<List<UserAPIKey>> userAPIKeys() async {
+    return sendGetRequest('/v1/api-keys', (data) {
+      return ((data.data['data'] ?? []) as List<dynamic>)
+          .map((e) => UserAPIKey.fromJson(e))
+          .toList();
+    });
+  }
+
+  /// 查询指定 API Key
+  Future<UserAPIKey> userAPIKeyDetail({required int id}) async {
+    return sendGetRequest('/v1/api-keys/$id', (data) {
+      return UserAPIKey.fromJson(data.data['data']);
+    });
+  }
+
+  /// 创建 API Key
+  Future<String> createAPIKey({required String name}) async {
+    return sendPostRequest(
+      '/v1/api-keys',
+      (data) => data.data['key'],
+      formData: {'name': name},
+    );
+  }
+
+  /// 删除 API Key
+  Future<void> deleteAPIKey({required int id}) async {
+    return sendDeleteRequest('/v1/api-keys/$id', (data) {});
+  }
+
+  /// 消息通知 ////////////////////////////////////////////////////////////////////
+  /// 消息通知列表
+  Future<OffsetPageData<NotifyMessage>> notifications({
+    int startId = 0,
+    int? perPage = 20,
+    bool cache = true,
+  }) async {
+    return sendCachedGetRequest(
+      '/v1/notifications',
+      (resp) {
+        var res = <NotifyMessage>[];
+        for (var item in resp.data['data']) {
+          res.add(NotifyMessage.fromJson(item));
+        }
+
+        return OffsetPageData(
+          data: res,
+          lastId: resp.data['last_id'],
+          startId: resp.data['start_id'],
+          perPage: resp.data['per_page'],
+        );
+      },
+      queryParameters: {
+        'start_id': startId,
+        'per_page': perPage,
+      },
+      forceRefresh: !cache,
+    );
+  }
+
+  /// 文章 ////////////////////////////////////////////////////////////////////
+  /// 文章详情
+  Future<Article> article({
+    required int id,
+    bool cache = true,
+  }) async {
+    return sendCachedGetRequest(
+      '/v1/articles/$id',
+      (resp) {
+        return Article.fromJson(resp.data['data']);
+      },
+      forceRefresh: !cache,
+    );
   }
 }

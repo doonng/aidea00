@@ -49,8 +49,9 @@ class _GroupChatPageState extends State<GroupChatPage> {
   final ValueNotifier<bool> _inputEnabled = ValueNotifier(true);
   final ChatPreviewController _chatPreviewController = ChatPreviewController();
   final AudioPlayerController _audioPlayerController =
-      AudioPlayerController(useRemoteAPI: false);
+      AudioPlayerController(useRemoteAPI: true);
   bool showAudioPlayer = false;
+  bool audioLoadding = false;
 
   List<GroupMember>? selectedMembers = [];
   List<GroupMessage> messages = [];
@@ -77,6 +78,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
     _audioPlayerController.onPlayAudioStarted = () {
       setState(() {
         showAudioPlayer = true;
+      });
+    };
+
+    _audioPlayerController.onPlayAudioLoading = (loading) {
+      setState(() {
+        audioLoadding = loading;
       });
     };
   }
@@ -143,7 +150,10 @@ class _GroupChatPageState extends State<GroupChatPage> {
               children: [
                 // 语音输出中提示
                 if (showAudioPlayer)
-                  EnhancedAudioPlayer(controller: _audioPlayerController),
+                  EnhancedAudioPlayer(
+                    controller: _audioPlayerController,
+                    loading: audioLoadding,
+                  ),
                 // 聊天内容窗口
                 Expanded(
                   child: _buildChatPreviewArea(
@@ -172,7 +182,10 @@ class _GroupChatPageState extends State<GroupChatPage> {
                         : ChatInput(
                             enableNotifier: _inputEnabled,
                             enableImageUpload: false,
-                            onSubmit: _handleSubmit,
+                            onSubmit: (value) {
+                              _handleSubmit(value);
+                              FocusManager.instance.primaryFocus?.unfocus();
+                            },
                             onNewChat: () => handleResetContext(context),
                             hintText: '有问题尽管问我',
                             onVoiceRecordTappedEvent: () {
@@ -411,16 +424,15 @@ class _GroupChatPageState extends State<GroupChatPage> {
             onDeleteMessage: (id) {
               handleDeleteMessage(context, id);
             },
+            onResetContext: () => handleResetContext(context),
             onSpeakEvent: (message) {
               _audioPlayerController.playAudio(message.text);
             },
-            onResentEvent: (message) {
+            onResentEvent: (message, index) {
               _scrollController.animateTo(0,
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeOut);
-              _handleSubmit(
-                message.text,
-              );
+              _handleSubmit(message.text, index: index, isResent: true);
             },
             helpWidgets: state.hasWaitTasks || loadedMessages.isEmpty
                 ? null
@@ -505,15 +517,23 @@ class _GroupChatPageState extends State<GroupChatPage> {
   }
 
   /// 提交新消息
-  void _handleSubmit(String text) {
+  void _handleSubmit(
+    String text, {
+    int? index,
+    bool isResent = false,
+  }) {
     setState(() {
       _inputEnabled.value = false;
     });
 
     var replyMemberIds = (selectedMembers ?? []).map((e) => e.id!).toList();
-    context
-        .read<GroupChatBloc>()
-        .add(GroupChatSendEvent(widget.groupId, text, replyMemberIds));
+    context.read<GroupChatBloc>().add(GroupChatSendEvent(
+          widget.groupId,
+          text,
+          replyMemberIds,
+          index: index,
+          isResent: isResent,
+        ));
   }
 
   /// 处理消息删除事件
@@ -594,6 +614,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
                               username: e.message.senderName,
                               avatarURL: e.message.avatarUrl,
                               leftSide: e.message.role == Role.receiver,
+                              images: e.message.images,
                             ))
                         .toList(),
                   ),

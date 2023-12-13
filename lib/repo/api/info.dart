@@ -3,8 +3,8 @@ class Capabilities {
   /// 是否支持 Apple Pay
   final bool applePayEnabled;
 
-  /// 是否支持支付宝
-  final bool alipayEnabled;
+  /// 是否支持其它
+  final bool otherPayEnabled;
 
   /// 是否支持翻译
   final bool translateEnabled;
@@ -27,6 +27,9 @@ class Capabilities {
   /// 是否支持 Websocket
   final bool supportWebsocket;
 
+  /// 是否支持 API Keys 功能
+  final bool supportAPIKeys;
+
   /// 是否显示绘玩
   final bool disableGallery;
 
@@ -39,9 +42,12 @@ class Capabilities {
   /// 是否禁用聊天
   final bool disableChat;
 
+  /// 服务状态页
+  final String serviceStatusPage;
+
   Capabilities({
     required this.applePayEnabled,
-    required this.alipayEnabled,
+    required this.otherPayEnabled,
     required this.translateEnabled,
     required this.mailEnabled,
     required this.openaiEnabled,
@@ -49,16 +55,18 @@ class Capabilities {
     this.homeRoute = '/chat-chat',
     this.showHomeModelDescription = true,
     this.supportWebsocket = false,
+    this.supportAPIKeys = false,
     this.disableGallery = false,
     this.disableCreationIsland = false,
     this.disableDigitalHuman = false,
     this.disableChat = false,
+    this.serviceStatusPage = '',
   });
 
   factory Capabilities.fromJson(Map<String, dynamic> json) {
     return Capabilities(
       applePayEnabled: json['apple_pay_enabled'] ?? false,
-      alipayEnabled: json['alipay_enabled'] ?? false,
+      otherPayEnabled: json['other_pay_enabled'] ?? false,
       translateEnabled: json['translate_enabled'] ?? false,
       mailEnabled: json['mail_enabled'] ?? false,
       openaiEnabled: json['openai_enabled'] ?? false,
@@ -68,17 +76,19 @@ class Capabilities {
       homeRoute: json['home_route'] ?? '/chat-chat',
       showHomeModelDescription: json['show_home_model_description'] ?? true,
       supportWebsocket: json['support_websocket'] ?? false,
+      supportAPIKeys: json['support_api_keys'] ?? false,
       disableGallery: json['disable_gallery'] ?? false,
       disableCreationIsland: json['disable_creation_island'] ?? false,
       disableDigitalHuman: json['disable_digital_human'] ?? false,
       disableChat: json['disable_chat'] ?? false,
+      serviceStatusPage: json['service_status_page'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'apple_pay_enabled': applePayEnabled,
-      'alipay_enabled': alipayEnabled,
+      'other_pay_enabled': otherPayEnabled,
       'translate_enabled': translateEnabled,
       'mail_enabled': mailEnabled,
       'openai_enabled': openaiEnabled,
@@ -86,10 +96,12 @@ class Capabilities {
       'home_route': homeRoute,
       'show_home_model_description': showHomeModelDescription,
       'support_websocket': supportWebsocket,
+      'support_api_keys': supportAPIKeys,
       'disable_gallery': disableGallery,
       'disable_creation_island': disableCreationIsland,
       'disable_digital_human': disableDigitalHuman,
       'disable_chat': disableChat,
+      'service_status_page': serviceStatusPage,
     };
   }
 }
@@ -111,12 +123,16 @@ class HomeModel {
   /// 是否是强大的模型
   final bool powerful;
 
+  /// 是否支持视觉
+  final bool supportVision;
+
   HomeModel({
     required this.name,
     required this.modelId,
     required this.desc,
     required this.color,
     this.powerful = false,
+    this.supportVision = false,
   });
 
   factory HomeModel.fromJson(Map<String, dynamic> json) => HomeModel(
@@ -125,6 +141,7 @@ class HomeModel {
         desc: json["desc"] ?? '',
         color: json["color"] ?? 'FF67AC5C',
         powerful: json['powerful'] ?? false,
+        supportVision: json['support_vision'] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -133,5 +150,6 @@ class HomeModel {
         "desc": desc,
         "color": color,
         "powerful": powerful,
+        "support_vision": supportVision,
       };
 }
